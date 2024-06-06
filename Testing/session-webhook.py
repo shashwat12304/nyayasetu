@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import requests
 import os
 from dotenv import load_dotenv
+import json
 load_dotenv()
 app = Flask(__name__)
 
@@ -9,13 +10,26 @@ app = Flask(__name__)
 def webhook():
     try:
         data = request.json
+        if data is None:
+            print("No JSON payload received.")
+            return jsonify({'status': 'error', 'message': 'Invalid JSON payload'}), 400
         print(f"The user data recieved is {data}\n")
-        user_message = data['messages'][0]['text']['body']
-        user_number = data['messages'][0]['from']
-        response_message = handle_user_message(user_message)
-        send_response=send_session_message(user_number, response_message)
-        print(f"Response sent to user: {send_response}")
-        return jsonify({'status': 'success'})
+        if 'messages' in data and len(data['messages']) > 0:
+            user_message = data['messages'][0].get('text', {}).get('body', None)
+            user_number = data['messages'][0].get('from', None)
+            
+            if user_message is None or user_number is None:
+                print("Message body or user number is missing.")
+                return jsonify({'status': 'error', 'message': 'Invalid message format'}), 400
+            response_message = handle_user_message(user_message)
+            send_session_message(user_number, response_message)
+            res_msg=f"Response sent to user: {response_message}"
+            print(res_msg)
+            return jsonify({'status': 'success','msg':res_msg})
+        else:
+            print("Invalid message format.")
+            return jsonify({'status': 'error', 'message': 'Invalid message format'}), 400
+            
     except Exception as e:
         print(f"Error in webhook: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
