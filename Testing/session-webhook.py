@@ -9,7 +9,7 @@ app = Flask(__name__)
 @app.route('/', methods=['POST'])
 def webhook():
     try:
-        data = request.json
+        data = json.loads(request.data)
         if data is None:
             print("No JSON payload received.")
             return jsonify({'status': 'error', 'message': 'Invalid JSON payload'}), 400
