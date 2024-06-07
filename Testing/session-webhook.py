@@ -14,24 +14,37 @@ def webhook():
         if data is None:
             print("No JSON payload received.")
             return jsonify({'status': 'error', 'message': 'Invalid JSON payload'}), 400
-        print(f"The user data recieved is {data}\n")
-        if 'messages' in data and len(data['messages']) > 0:
-            user_message = data['messages'][0].get('text', {}).get('body', None)
-            print(user_message)
-            user_number = data['messages'][0].get('from', None)
-            
-            if user_message is None or user_number is None:
-                print("Message body or user number is missing.")
-                return jsonify({'status': 'error', 'message': 'Invalid message format'}), 400
-            response_message = handle_user_message(user_message)
-            send_session_message(user_number, response_message)
-            res_msg=f"Response sent to user: {response_message}"
-            print(res_msg)
-            return jsonify({'status': 'success','msg':res_msg})
+        print(f"The user data received is {data}\n")
+
+        # Navigate through the provided JSON schema
+        entry = data.get('entry', [])
+        if entry:
+            changes = entry[0].get('changes', [])
+            if changes:
+                value = changes[0].get('value', {})
+                messages = value.get('messages', [])
+                if messages:
+                    user_message = messages[0].get('text', {}).get('body', None)
+                    print(user_message)
+                    user_number = messages[0].get('from', None)
+                    
+                    if user_message is None or user_number is None:
+                        print("Message body or user number is missing.")
+                        return jsonify({'status': 'error', 'message': 'Invalid message format'}), 400
+                    response_message = handle_user_message(user_message)
+                    send_session_message(user_number, response_message)
+                    res_msg = f"Response sent to user: {response_message}"
+                    print(res_msg)
+                    return jsonify({'status': 'success', 'msg': res_msg})
+                else:
+                    print("No messages found.")
+                    return jsonify({'status': 'error', 'message': 'No messages found'}), 400
+            else:
+                print("No changes found.")
+                return jsonify({'status': 'error', 'message': 'No changes found'}), 400
         else:
-            print("Invalid message format.")
-            return jsonify({'status': 'error', 'message': 'Invalid message format'}), 400
-            
+            print("No entry found.")
+            return jsonify({'status': 'error', 'message': 'No entry found'}), 400
     except Exception as e:
         print(f"Error in webhook: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
@@ -75,14 +88,44 @@ if __name__ == '__main__':
 
 
 
-
+#SAMPLE REQUEST
 # {
-#   "messages": [
+#   "object": "whatsapp_business_account",
+#   "entry": [
 #     {
-#       "text": {
-#         "body": "Hello, I need legal assistance."
-#       },
-#       "from": "1234567890"
+#       "id": "WHATSAPP_BUSINESS_ACCOUNT_ID",
+#       "changes": [
+#         {
+#           "value": {
+#             "messaging_product": "whatsapp",
+#             "metadata": {
+#               "display_phone_number": "1234567890",
+#               "phone_number_id": "PHONE_NUMBER_ID"
+#             },
+#             "contacts": [
+#               {
+#                 "profile": {
+#                   "name": "John Doe"
+#                 },
+#                 "wa_id": "1234567890"
+#               }
+#             ],
+#             "messages": [
+#               {
+#                 "from": "9910204981",
+#                 "id": "wamid.ID",
+#                 "timestamp": "TIMESTAMP",
+#                 "text": {
+#                   "body": "Hello, I need legal assistance."
+#                 },
+#                 "type": "text"
+#               }
+#             ]
+#           },
+#           "field": "messages"
+#         }
+#       ]
 #     }
 #   ]
 # }
+
