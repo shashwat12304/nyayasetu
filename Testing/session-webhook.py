@@ -9,6 +9,7 @@ app = Flask(__name__)
 @app.route('/', methods=['POST'])
 def webhook():
     try:
+        print(request.data)
         data = json.loads(request.data)
         if data is None:
             print("No JSON payload received.")
@@ -16,6 +17,7 @@ def webhook():
         print(f"The user data recieved is {data}\n")
         if 'messages' in data and len(data['messages']) > 0:
             user_message = data['messages'][0].get('text', {}).get('body', None)
+            print(user_message)
             user_number = data['messages'][0].get('from', None)
             
             if user_message is None or user_number is None:
@@ -70,3 +72,17 @@ def send_session_message(to, message):
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
+
+
+
+
+# {
+#   "messages": [
+#     {
+#       "text": {
+#         "body": "Hello, I need legal assistance."
+#       },
+#       "from": "1234567890"
+#     }
+#   ]
+# }
