@@ -51,7 +51,17 @@ def webhook():
 
 def handle_user_message(message):
     try:
-        return f"Thank you for your message: '{message}'. How can we assist you?"
+        chatbot_url = "https://calf-engaging-virtually.ngrok-free.app/synthesize_text_and_audio"
+        params = {
+            "username": "myusername",
+            "knowledge": 1,
+            "language": "English",
+            "text": message
+        }
+        response = requests.get(chatbot_url, params=params)
+        response_data = response.json()
+        chatbot_response = response_data.get('text', 'Sorry, I could not process your request.')
+        return chatbot_response
     except Exception as e:
         print(f"Error in handle_user_message: {e}")
         return "Sorry, there was an error processing your message."
@@ -88,7 +98,7 @@ if __name__ == '__main__':
 
 
 
-#SAMPLE REQUEST
+# SAMPLE REQUEST
 # {
 #   "object": "whatsapp_business_account",
 #   "entry": [
